@@ -6,7 +6,7 @@ export const AuthContext = createContext();
 
 // Define your backend URL
 // const API_URL = 'http://localhost:5000/api/auth';
-const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api/';
+const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api';
 const API_URL = `${BASE_URL}/auth`;
 
 // 2. Create the Provider Component
