@@ -5,8 +5,14 @@ import axios from 'axios';
 
 // NOTE: We will use the Instructor's GET lessons endpoint for now, 
 // as Student viewing permissions are implicit.
-const API_URL_LESSONS = 'http://localhost:5000/api/instructor/lessons'; 
-const API_URL = 'http://localhost:5000/api/user/content';
+// const API_URL_LESSONS = 'http://localhost:5000/api/instructor/lessons'; 
+// const API_URL = 'http://localhost:5000/api/user/content';
+const BASE_URL = 'https://lms-backend-sau.onrender.com/api/';
+const API_URL = `${BASE_URL}/user/content`;
+const API_URL_LESSONS = `${BASE_URL}/instructor/lessons`;
+
+
+
 
 const StudentCourseDetails = () => {
     const { courseId } = useParams();

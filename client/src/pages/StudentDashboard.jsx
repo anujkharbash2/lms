@@ -3,7 +3,12 @@ import { useNavigate } from 'react-router-dom'; // CORRECTED: Import useNavigate
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/user';
+// const API_URL = 'http://localhost:5000/api/user';
+//https://lms-backend-lyf8.onrender.com/
+
+const BASE_URL = 'https://lms-backend-sau.onrender.com/api/';
+const API_URL = `${BASE_URL}/user`;
+
 
 const StudentDashboard = () => {
     const { token, user, logout } = useContext(AuthContext);

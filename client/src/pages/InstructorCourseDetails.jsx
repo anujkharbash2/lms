@@ -3,7 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/instructor';
+// const API_URL = 'http://localhost:5000/api/instructor';
+const BASE_URL = 'https://lms-backend-sau.onrender.com/api/';
+const API_URL = `${BASE_URL}/instructor`;
 
 const InstructorCourseDetails = () => {
     const { courseId } = useParams(); // Get course ID from URL

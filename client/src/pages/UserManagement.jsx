@@ -3,7 +3,11 @@ import AdminLayout from '../components/AdminLayout';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/admin';
+//const API_URL = 'http://localhost:5000/api/admin';
+
+const BASE_URL = 'https://lms-backend-sau.onrender.com/api/';
+const API_URL = `${BASE_URL}/admin`;
+
 
 const UserManagement = () => {
     const { token } = useContext(AuthContext);
