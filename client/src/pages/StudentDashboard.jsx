@@ -31,54 +31,84 @@ const StudentDashboard = () => {
 
     return (
         <StudentLayout>
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-800">My Dashboard</h1>
-                <p className="text-gray-600 mt-1">Welcome back, <span className="font-semibold text-teal-600">{user?.loginId}</span>.</p>
-            </div>
+            <div className="w-full max-w-6xl mx-auto">
+                
+                {/* Header Section */}
+                <div className="mb-8">
+                    <h5 className="text-slate-800 text-2xl font-bold">My Dashboard</h5>
+                    <p className="text-slate-600 font-light">
+                        Welcome back, <span className="font-semibold text-slate-800">{user?.loginId}</span>. Here are your enrolled courses.
+                    </p>
+                </div>
 
-            {loading ? (
-                <div className="text-center py-10 text-gray-500">Loading your courses...</div>
-            ) : (
-                <>
-                    <h2 className="text-xl font-semibold mb-4 text-gray-700">Enrolled Courses</h2>
-                    
-                    {courses.length === 0 ? (
-                        <div className="bg-white p-8 rounded-lg shadow text-center text-gray-500">
-                            You are not enrolled in any courses yet. Please contact your Department Admin.
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {courses.map(course => (
-                                <div 
-                                    key={course.id} 
-                                    onClick={() => navigate(`/student/course/${course.id}`)}
-                                    className="bg-white p-6 rounded-lg shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border-t-4 border-teal-500 group"
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="bg-teal-100 text-teal-800 text-xs font-bold px-2 py-1 rounded">
-                                            {course.course_code || 'COURSE'}
-                                        </span>
-                                        <span className="text-gray-400 group-hover:text-teal-600">↗</span>
-                                    </div>
-                                    
-                                    <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-teal-700">
-                                        {course.title}
-                                    </h3>
-                                    
-                                    <p className="text-sm text-gray-600 line-clamp-2 mb-4">
-                                        {course.description || 'No description available.'}
-                                    </p>
-                                    
-                                    <div className="border-t pt-3 flex items-center text-sm text-gray-500">
-                                        <span className="mr-2">👨‍🏫</span>
-                                        {course.instructor_name || 'Instructor not assigned'}
-                                    </div>
+                {loading ? (
+                    <div className="text-center py-12">
+                        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-slate-800"></div>
+                        <p className="mt-2 text-slate-500">Loading your courses...</p>
+                    </div>
+                ) : (
+                    <>
+                        {courses.length === 0 ? (
+                            <div className="relative flex flex-col bg-white shadow-sm border border-slate-200 rounded-lg w-full p-10 text-center items-center justify-center">
+                                <div className="bg-slate-50 p-4 rounded-full mb-4">
+                                    <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                    </svg>
                                 </div>
-                            ))}
-                        </div>
-                    )}
-                </>
-            )}
+                                <h6 className="text-slate-800 text-lg font-semibold">No Courses Found</h6>
+                                <p className="text-slate-500 mt-1 max-w-md">
+                                    You are not enrolled in any courses yet. Please contact your Department Admin for enrollment.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {courses.map(course => (
+                                    <div 
+                                        key={course.id} 
+                                        onClick={() => navigate(`/student/course/${course.id}`)}
+                                        className="relative flex flex-col bg-white shadow-sm border border-slate-200 hover:border-slate-300 hover:shadow-md rounded-lg transition-all cursor-pointer h-full group"
+                                    >
+                                        <div className="p-5 flex flex-col h-full">
+                                            
+                                            {/* Card Header: Code & Arrow */}
+                                            <div className="flex justify-between items-start mb-4">
+                                                <span className="rounded-md bg-slate-100 px-3 py-1 text-xs font-bold uppercase text-slate-600 tracking-wider">
+                                                    {course.course_code || 'COURSE'}
+                                                </span>
+                                                <div className="text-slate-300 group-hover:text-slate-600 transition-colors">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+
+                                            {/* Title */}
+                                            <h5 className="mb-2 text-slate-800 text-xl font-semibold group-hover:text-blue-700 transition-colors">
+                                                {course.title}
+                                            </h5>
+
+                                            {/* Description */}
+                                            <p className="text-slate-600 leading-relaxed font-light text-sm mb-6 flex-grow line-clamp-3">
+                                                {course.description || 'No description provided for this course.'}
+                                            </p>
+
+                                            {/* Footer: Instructor Info */}
+                                            <div className="mt-auto pt-4 border-t border-slate-100 flex items-center text-slate-500 text-sm">
+                                                <svg className="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                                <span className="truncate">
+                                                    {course.instructor_name || 'Instructor not assigned'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
         </StudentLayout>
     );
 };

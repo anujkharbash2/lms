@@ -3,11 +3,15 @@ import StudentSidebar from './StudentSidebar';
 
 const StudentLayout = ({ children }) => {
     return (
-        <div className="flex">
+        <div className="min-h-screen bg-gray-50">
             <StudentSidebar />
-            <div className="flex-grow ml-64 bg-gray-50 min-h-screen">
+            <div className="p-4 sm:ml-64">
+                <div className="p-4 border-2 border-gray-200 border-dashed rounded-lg">
                 {children}
             </div>
+
+            </div>
+            
         </div>
     );
 };

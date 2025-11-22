@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
 import DeptAdminLayout from '../components/DeptAdminLayout';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-// Use your API URL
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const DeptUserManagement = () => {
@@ -11,10 +10,16 @@ const DeptUserManagement = () => {
     const [users, setUsers] = useState([]);
     const [selectedRole, setSelectedRole] = useState('Student');
     const [formData, setFormData] = useState({});
-    const [message, setMessage] = useState('');
+    const [message, setMessage] = useState({ type: '', text: '' });
+
+    // Standard Styles
+    const inputClass = "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-500 hover:border-slate-300 shadow-sm focus:shadow-md ring-4 ring-transparent focus:ring-slate-100";
+    const labelClass = "block mb-2 text-sm text-slate-600 font-semibold";
+    const buttonClass = "rounded-md bg-slate-800 py-2.5 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none";
 
     // Fetch Users for THIS Department only
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
+        if (!token) return;
         try {
             const res = await axios.get(`${BASE_URL}/deptadmin/users`, { 
                 headers: { Authorization: `Bearer ${token}` } 
@@ -23,30 +28,32 @@ const DeptUserManagement = () => {
         } catch (error) {
             console.error(error);
         }
-    };
+    }, [token]);
 
     useEffect(() => {
-        if (token) fetchUsers();
-    }, [token]);
+        fetchUsers();
+    }, [fetchUsers]);
 
     const handleCreateUser = async (e) => {
         e.preventDefault();
-        setMessage('');
+        setMessage({ type: '', text: '' });
         
         let endpoint = '/deptadmin/users/student';
         if (selectedRole === 'Instructor') endpoint = '/deptadmin/users/instructor';
 
         try {
-            // Note: We do NOT send dept_id. The backend injects it automatically.
             const res = await axios.post(`${BASE_URL}${endpoint}`, formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            setMessage(`Success: User created with ID: ${res.data.loginId}`);
+            setMessage({ type: 'success', text: `Success: User created with Login ID: ${res.data.loginId}` });
             setFormData({}); // Clear form
             fetchUsers(); // Refresh list
+            
+            // Optional: Reset form fields visually if they aren't controlled fully by state object keys
+            e.target.reset(); 
         } catch (error) {
-            setMessage(`Error: ${error.response?.data?.message || 'Failed'}`);
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to create user' });
         }
     };
 
@@ -54,71 +61,188 @@ const DeptUserManagement = () => {
 
     return (
         <DeptAdminLayout>
-            <h1 className="text-3xl font-bold mb-6 text-gray-800">My Department Users</h1>
-            
-            {/* Create User Form */}
-            <div className="bg-white p-6 rounded shadow mb-8 border-t-4 border-indigo-600">
-                <h2 className="text-xl font-bold mb-4 text-indigo-600">Add New Member</h2>
-                {message && <div className={`p-2 mb-4 rounded ${message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>{message}</div>}
-
-                <div className="mb-4">
-                    <label className="block font-bold mb-1">Role</label>
-                    <select className="border p-2 rounded w-full" value={selectedRole} onChange={e => setSelectedRole(e.target.value)}>
-                        <option value="Student">Student</option>
-                        <option value="Instructor">Instructor</option>
-                    </select>
+            <div className="w-full max-w-6xl mx-auto">
+                
+                {/* Page Header */}
+                <div className="mb-8">
+                    <h5 className="text-slate-800 text-2xl font-bold">My Department Users</h5>
+                    <p className="text-slate-600 font-light">Manage faculty members and students within your unit.</p>
                 </div>
 
-                <form onSubmit={handleCreateUser} className="grid grid-cols-2 gap-4">
-                    <input name="password" type="password" placeholder="Temporary Password" onChange={handleInputChange} className="border p-2 rounded" required />
-                    
-                    {/* Conditional Fields */}
-                    {selectedRole === 'Student' && (
-                        <>
-                            <input name="full_name" placeholder="Full Name" onChange={handleInputChange} className="border p-2 rounded" required />
-                            <input name="program" placeholder="Program (e.g. B.Tech)" onChange={handleInputChange} className="border p-2 rounded" required />
-                            <input name="enrollment_number" placeholder="Enrollment No" onChange={handleInputChange} className="border p-2 rounded" required />
-                            <input name="email" type="email" placeholder="Email" onChange={handleInputChange} className="border p-2 rounded" required />
-                            <input name="branch" placeholder="Branch" onChange={handleInputChange} className="border p-2 rounded" />
-                            <input name="section" placeholder="Section" onChange={handleInputChange} className="border p-2 rounded" />
-                        </>
-                    )}
-                    {selectedRole === 'Instructor' && (
-                        <>
-                            <input name="name" placeholder="Instructor Name" onChange={handleInputChange} className="border p-2 rounded" required />
-                            <input name="office_address" placeholder="Office Address" onChange={handleInputChange} className="border p-2 rounded" />
-                        </>
-                    )}
+                {/* CREATE USER CARD */}
+                <div className="relative flex flex-col mb-8 bg-white shadow-sm border border-slate-200 rounded-lg w-full">
+                    <div className="p-6 border-b border-slate-100">
+                        <h5 className="text-slate-800 text-xl font-semibold">Add New Member</h5>
+                    </div>
 
-                    <button className="col-span-2 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">Create Member</button>
-                </form>
-            </div>
+                    <div className="p-6">
+                        {/* Notification Message */}
+                        {message.text && (
+                            <div className={`p-4 mb-6 text-sm rounded-md border ${
+                                message.type === 'success' 
+                                    ? 'bg-green-50 text-green-700 border-green-200' 
+                                    : 'bg-red-50 text-red-700 border-red-200'
+                            }`}>
+                                {message.text}
+                            </div>
+                        )}
 
-            {/* User List Table */}
-            <div className="bg-white p-6 rounded shadow overflow-x-auto">
-                <h3 className="text-lg font-semibold mb-4">Faculty & Students</h3>
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b bg-gray-50">
-                            <th className="p-3">ID</th>
-                            <th className="p-3">Role</th>
-                            <th className="p-3">Name</th>
-                            <th className="p-3">Program/Email</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {users.length > 0 ? users.map(u => (
-                            <tr key={u.id} className="border-b hover:bg-gray-50">
-                                <td className="p-3 font-mono text-indigo-600">{u.login_id}</td>
-                                <td className="p-3"><span className={`px-2 py-1 rounded text-xs ${u.role === 'Student' ? 'bg-green-100 text-green-800' : 'bg-purple-100 text-purple-800'}`}>{u.role}</span></td>
-                                <td className="p-3">{u.name}</td>
-                                <td className="p-3 text-sm text-gray-600">{u.program || u.email}</td>
-                            </tr>
-                        )) : <tr><td colSpan="4" className="p-4 text-center text-gray-500">No users found in your department.</td></tr>}
-                    </tbody>
-                </table>
+                        <div className="mb-6">
+                            <label className={labelClass}>Select Role</label>
+                            <div className="relative">
+                                <select 
+                                    className={inputClass} 
+                                    value={selectedRole} 
+                                    onChange={e => {
+                                        setSelectedRole(e.target.value);
+                                        setFormData({}); // Reset form data when switching roles
+                                    }}
+                                >
+                                    <option value="Student">Student</option>
+                                    <option value="Instructor">Instructor</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleCreateUser}>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Common Field */}
+                                <div>
+                                    <label className={labelClass}>Temporary Password</label>
+                                    <input 
+                                        name="password" 
+                                        type="password" 
+                                        placeholder="••••••••" 
+                                        onChange={handleInputChange} 
+                                        className={inputClass} 
+                                        required 
+                                    />
+                                </div>
+
+                                {/* Student Specific Fields */}
+                                {selectedRole === 'Student' && (
+                                    <>
+                                        <div>
+                                            <label className={labelClass}>Full Name</label>
+                                            <input name="full_name" placeholder="John Doe" onChange={handleInputChange} className={inputClass} required />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Program</label>
+                                            <input name="program" placeholder="e.g. B.Tech" onChange={handleInputChange} className={inputClass} required />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Enrollment Number</label>
+                                            <input name="enrollment_number" placeholder="e.g. 2023CS01" onChange={handleInputChange} className={inputClass} required />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Email</label>
+                                            <input name="email" type="email" placeholder="student@sau.int" onChange={handleInputChange} className={inputClass} required />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Branch (Optional)</label>
+                                            <input name="branch" placeholder="e.g. CSE" onChange={handleInputChange} className={inputClass} />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Section (Optional)</label>
+                                            <input name="section" placeholder="e.g. A" onChange={handleInputChange} className={inputClass} />
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Instructor Specific Fields */}
+                                {selectedRole === 'Instructor' && (
+                                    <>
+                                        <div>
+                                            <label className={labelClass}>Instructor Name</label>
+                                            <input name="name" placeholder="Dr. Jane Smith" onChange={handleInputChange} className={inputClass} required />
+                                        </div>
+                                        <div>
+                                            <label className={labelClass}>Office Address</label>
+                                            <input name="office_address" placeholder="Room 304, Science Block" onChange={handleInputChange} className={inputClass} />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            <div className="mt-8 flex justify-end">
+                                <button type="submit" className={`${buttonClass} w-full md:w-auto`}>
+                                    + Create {selectedRole}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                {/* USER LIST TABLE */}
+                <div className="relative flex flex-col bg-white shadow-sm border border-slate-200 rounded-lg w-full">
+                    <div className="p-4 border-b border-slate-100">
+                        <h5 className="text-slate-800 text-lg font-semibold">
+                            Faculty & Students List
+                        </h5>
+                    </div>
+                    <div className="block w-full overflow-x-auto">
+                        <table className="items-center w-full bg-transparent border-collapse">
+                            <thead>
+                                <tr>
+                                    <th className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-bold text-left bg-slate-50 text-slate-500 border-slate-100">
+                                        Login ID
+                                    </th>
+                                    <th className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-bold text-left bg-slate-50 text-slate-500 border-slate-100">
+                                        Role
+                                    </th>
+                                    <th className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-bold text-left bg-slate-50 text-slate-500 border-slate-100">
+                                        Name
+                                    </th>
+                                    <th className="px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-bold text-left bg-slate-50 text-slate-500 border-slate-100">
+                                        Details
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {users.length > 0 ? (
+                                    users.map((u, index) => (
+                                        <tr key={u.id} className={`hover:bg-slate-50 transition-colors duration-200 ${index !== users.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                                            <td className="px-6 py-4 align-middle text-xs whitespace-nowrap text-left font-mono text-slate-600">
+                                                {u.login_id}
+                                            </td>
+                                            <td className="px-6 py-4 align-middle text-xs whitespace-nowrap text-left">
+                                                <span className={`px-2 py-1 rounded-full font-semibold text-[10px] uppercase tracking-wide ${
+                                                    u.role === 'Student' 
+                                                        ? 'bg-green-50 text-green-600' 
+                                                        : 'bg-purple-50 text-purple-600'
+                                                }`}>
+                                                    {u.role}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 align-middle text-sm whitespace-nowrap text-left text-slate-700 font-medium">
+                                                {u.name}
+                                            </td>
+                                            <td className="px-6 py-4 align-middle text-sm whitespace-nowrap text-left text-slate-500">
+                                                {u.role === 'Student' ? (
+                                                    <span>{u.program} <span className="text-slate-300 mx-1">|</span> {u.email}</span>
+                                                ) : (
+                                                    <span>{u.office_address || 'No Office Assigned'}</span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="4" className="px-6 py-10 text-center text-slate-500 text-sm">
+                                            <div className="flex flex-col items-center justify-center">
+                                                <svg className="w-10 h-10 text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                                No users found in your department.
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </DeptAdminLayout>
     );
 };
+
 export default DeptUserManagement;

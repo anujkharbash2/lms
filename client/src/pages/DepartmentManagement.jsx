@@ -3,7 +3,6 @@ import AdminLayout from '../components/AdminLayout';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-// const API_URL = 'http://localhost:5000/api/admin';
 const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api';
 const API_URL = `${BASE_URL}/admin`;
 
@@ -13,15 +12,18 @@ const DepartmentManagement = () => {
     // Forms State
     const [deptName, setDeptName] = useState('');
     const [deptType, setDeptType] = useState('Department');
-    
-    const [assignLoginId, setAssignLoginId] = useState('');
-    const [assignDeptId, setAssignDeptId] = useState('');
-    
     const [message, setMessage] = useState({ type: '', text: '' });
 
-    // 1. Create Department
+    // Standard Styles matching your User Management page
+    const inputClass = "w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded-md px-3 py-2 transition duration-300 ease focus:outline-none focus:border-slate-500 hover:border-slate-300 shadow-sm focus:shadow-md ring-4 ring-transparent focus:ring-slate-100";
+    const labelClass = "block mb-2 text-sm text-slate-600 font-semibold";
+    const buttonClass = "rounded-md bg-slate-800 py-2.5 px-4 border border-transparent text-center text-sm text-white transition-all shadow-md hover:shadow-lg focus:bg-slate-700 focus:shadow-none active:bg-slate-700 hover:bg-slate-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none";
+
+    // Create Department Handler
     const handleCreateDept = async (e) => {
         e.preventDefault();
+        setMessage({ type: '', text: '' });
+        
         try {
             const res = await axios.post(`${API_URL}/departments`, 
                 { name: deptName, type: deptType }, 
@@ -34,98 +36,73 @@ const DepartmentManagement = () => {
         }
     };
 
-    // 2. Assign Dept Admin
-    const handleAssignAdmin = async (e) => {
-        e.preventDefault();
-        try {
-            const res = await axios.post(`${API_URL}/departments/assign-admin`, 
-                { login_id: assignLoginId, dept_id: assignDeptId }, 
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setMessage({ type: 'success', text: res.data.message });
-            setAssignLoginId('');
-            setAssignDeptId('');
-        } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.message || 'Assignment failed' });
-        }
-    };
-
     return (
         <AdminLayout>
-            <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-2">Departments & Faculties</h1>
-            
-            {message.text && (
-                <div className={`p-4 mb-6 rounded ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                    {message.text}
-                </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* --- Card 1: Create Department --- */}
-                <div className="bg-white p-6 rounded-lg shadow-md h-fit">
-                    <h2 className="text-xl font-semibold text-indigo-600 mb-4">1. Create New Unit</h2>
-                    <form onSubmit={handleCreateDept} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Name</label>
-                            <input 
-                                type="text" 
-                                value={deptName}
-                                onChange={(e) => setDeptName(e.target.value)}
-                                placeholder="e.g. Computer Science" 
-                                className="w-full p-2 border rounded mt-1"
-                                required 
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Type</label>
-                            <select 
-                                value={deptType} 
-                                onChange={(e) => setDeptType(e.target.value)}
-                                className="w-full p-2 border rounded mt-1"
-                            >
-                                <option value="Department">Department</option>
-                                <option value="Faculty">Faculty</option>
-                            </select>
-                        </div>
-                        <button type="submit" className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700">
-                            Create Unit
-                        </button>
-                    </form>
+            <div className="w-full max-w-6xl mx-auto">
+                
+                {/* Page Header */}
+                <div className="mb-8">
+                    <h5 className="text-slate-800 text-2xl font-bold">Departments & Faculties</h5>
+                    <p className="text-slate-600 font-light">Manage university units and organizational structure.</p>
                 </div>
 
-                {/* --- Card 2: Assign Admin --- */}
-                <div className="bg-white p-6 rounded-lg shadow-md h-fit">
-                    <h2 className="text-xl font-semibold text-purple-600 mb-4">2. Assign Dept Admin</h2>
-                    <p className="text-sm text-gray-500 mb-4">
-                        Note: You must first create a user with the role <strong>Dept_Admin</strong> in the "User Management" tab.
-                    </p>
-                    <form onSubmit={handleAssignAdmin} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Dept Admin Login ID</label>
-                            <input 
-                                type="text" 
-                                value={assignLoginId}
-                                onChange={(e) => setAssignLoginId(e.target.value)}
-                                placeholder="e.g. 7654321" 
-                                className="w-full p-2 border rounded mt-1"
-                                required 
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700">Department ID</label>
-                            <input 
-                                type="number" 
-                                value={assignDeptId}
-                                onChange={(e) => setAssignDeptId(e.target.value)}
-                                placeholder="ID from creation step" 
-                                className="w-full p-2 border rounded mt-1"
-                                required 
-                            />
-                        </div>
-                        <button type="submit" className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700">
-                            Assign Admin
-                        </button>
-                    </form>
+                {/* Card: Create Department */}
+                <div className="relative flex flex-col bg-white shadow-sm border border-slate-200 rounded-lg w-full max-w-2xl mx-auto">
+                    
+                    {/* Card Header */}
+                    <div className="p-6 border-b border-slate-100">
+                        <h5 className="text-slate-800 text-xl font-semibold">
+                            Create New Unit
+                        </h5>
+                    </div>
+
+                    <div className="p-6">
+                        {/* Notification Message */}
+                        {message.text && (
+                            <div className={`p-4 mb-6 text-sm rounded-md border ${
+                                message.type === 'success' 
+                                    ? 'bg-green-50 text-green-700 border-green-200' 
+                                    : 'bg-red-50 text-red-700 border-red-200'
+                            }`}>
+                                {message.text}
+                            </div>
+                        )}
+
+                        <form onSubmit={handleCreateDept} className="space-y-6">
+                            <div>
+                                <label className={labelClass}>Unit Name</label>
+                                <input 
+                                    type="text" 
+                                    value={deptName}
+                                    onChange={(e) => setDeptName(e.target.value)}
+                                    placeholder="e.g. Computer Science" 
+                                    className={inputClass}
+                                    required 
+                                />
+                            </div>
+
+                            <div>
+                                <label className={labelClass}>Unit Type</label>
+                                <div className="relative">
+                                    <select 
+                                        value={deptType} 
+                                        onChange={(e) => setDeptType(e.target.value)}
+                                        className={inputClass}
+                                    >
+                                        <option value="Department">Department</option>
+                                        <option value="Faculty">Faculty</option>
+                                        
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="pt-2">
+                                <button type="submit" className={`w-full ${buttonClass}`}>
+                                    + Create Unit
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </AdminLayout>
