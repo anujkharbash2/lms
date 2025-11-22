@@ -10,6 +10,10 @@ import InstructorDashboard from './pages/InstructorDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import InstructorCourseDetails from './pages/InstructorCourseDetails';
 import StudentCourseDetails from './pages/StudentCourseDetails';
+import DeptAdminDashboard from './pages/DeptAdminDashboard';
+import DeptUserManagement from './pages/DeptUserManagement';
+import DeptCourseManagement from './pages/DeptCourseManagement';
+
 
 function App() {
   return (
@@ -36,10 +40,7 @@ function App() {
       />
       
       {/* --- DEPT ADMIN ROUTES --- */}
-      <Route 
-        path="/deptadmin/dashboard" 
-        element={<PrivateRoute requiredRole="Dept_Admin"><div>Dept Admin Dashboard (Coming Soon)</div></PrivateRoute>} 
-      />
+      
 
       {/* --- INSTRUCTOR ROUTES --- */}
       <Route 
@@ -59,6 +60,18 @@ function App() {
       <Route 
         path="/student/course/:courseId" 
         element={<PrivateRoute requiredRole="Student"><StudentCourseDetails /></PrivateRoute>} 
+      />
+      <Route 
+        path="/deptadmin/dashboard" 
+        element={<PrivateRoute requiredRole="Dept_Admin"><DeptAdminDashboard /></PrivateRoute>} 
+      />
+      <Route 
+        path="/deptadmin/users" // <-- NEW ROUTE
+        element={<PrivateRoute requiredRole="Dept_Admin"><DeptUserManagement /></PrivateRoute>} 
+      />
+      <Route 
+        path="/deptadmin/courses" // <-- NEW ROUTE
+        element={<PrivateRoute requiredRole="Dept_Admin"><DeptCourseManagement /></PrivateRoute>} 
       />
 
       <Route path="*" element={<NotFound />} /> 

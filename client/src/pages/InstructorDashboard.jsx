@@ -5,7 +5,7 @@ import axios from 'axios';
 
 // const API_URL = 'http://localhost:5000/api/user';
 const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api';
-const API_URL = `${BASE_URL}user`;
+const API_URL = `${BASE_URL}/user`;
 
 const InstructorDashboard = () => {
     const { token, user, logout } = useContext(AuthContext);

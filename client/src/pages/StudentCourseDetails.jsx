@@ -1,104 +1,121 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
+import StudentLayout from '../components/StudentLayout';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 
-// NOTE: We will use the Instructor's GET lessons endpoint for now, 
-// as Student viewing permissions are implicit.
-// const API_URL_LESSONS = 'http://localhost:5000/api/instructor/lessons'; 
-// const API_URL = 'http://localhost:5000/api/user/content';
-const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api';
-const API_URL = `${BASE_URL}/user/content`;
-const API_URL_LESSONS = `${BASE_URL}/instructor/lessons`;
-
-
-
+const BASE_URL = import.meta.env.VITE_API_URL || 'https://lms-backend-lyf8.onrender.com/api';
 
 const StudentCourseDetails = () => {
     const { courseId } = useParams();
-    const { token, user } = useContext(AuthContext);
+    const { token } = useContext(AuthContext);
     
+    const [activeTab, setActiveTab] = useState('info');
+    const [courseData, setCourseData] = useState(null);
     const [lessons, setLessons] = useState([]);
     const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
 
     useEffect(() => {
-        if (token && courseId) {
-            fetchContent();
-        }
+        const fetchData = async () => {
+            try {
+                const [infoRes, lessRes, annRes] = await Promise.all([
+                    axios.get(`${BASE_URL}/user/content/course/${courseId}/details`, { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(`${BASE_URL}/user/content/lessons/${courseId}`, { headers: { Authorization: `Bearer ${token}` } }),
+                    axios.get(`${BASE_URL}/user/content/announcements/${courseId}`, { headers: { Authorization: `Bearer ${token}` } })
+                ]);
+                
+                setCourseData(infoRes.data);
+                setLessons(lessRes.data);
+                setAnnouncements(annRes.data);
+            } catch (err) { 
+                console.error(err);
+                setError('Failed to load data. Ensure backend is running.');
+            } finally { 
+                setLoading(false); 
+            }
+        };
+        if (token && courseId) fetchData();
     }, [token, courseId]);
 
-    const fetchContent = async () => {
-        setLoading(true);
-        try {
-            // 1. Fetch Lessons (Secure Endpoint)
-            const lessonRes = await axios.get(`${API_URL}/lessons/${courseId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setLessons(lessonRes.data);
-
-            // 2. Fetch Announcements (Secure Endpoint)
-            const announcementRes = await axios.get(`${API_URL}/announcements/${courseId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setAnnouncements(announcementRes.data);
-
-        } catch (error) {
-            console.error('Failed to fetch course content:', error);
-            // Updated error message to reflect the security check failure
-            setMessage(error.response?.data?.message || 'Failed to load content. You may not be enrolled.');
-        } finally {
-            setLoading(false);
-        }
+    // ... (Keep your existing Categorized Lessons logic here) ...
+    const categorizedLessons = {
+        'Lecture Notes': lessons.filter(l => l.category === 'Lecture Notes'),
+        'Tutorial': lessons.filter(l => l.category === 'Tutorial'),
+        'Exam Paper': lessons.filter(l => l.category === 'Exam Paper'),
+        'Video': lessons.filter(l => l.category === 'Video'),
+        'Other': lessons.filter(l => !['Lecture Notes','Tutorial','Exam Paper','Video'].includes(l.category))
     };
 
-    if (loading) return <div className="p-8">Loading course content...</div>;
+    if (loading) return <StudentLayout><div className="p-8">Loading...</div></StudentLayout>;
+    if (error) return <StudentLayout><div className="p-8 text-red-600">{error}</div></StudentLayout>;
 
     return (
-        <div className="min-h-screen bg-gray-100 p-8">
-            <h1 className="text-3xl font-bold text-gray-800 mb-6">Course Viewer: Course ID {courseId}</h1>
-            <p className="text-lg mb-4">{message}</p>
-
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-                {/* --- Announcements Column --- */}
-                <div className="md:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit border-t-4 border-red-500">
-        <h2 className="text-xl font-semibold mb-4 text-red-600">Announcements ({announcements.length})</h2>
-        {announcements.length === 0 ? (
-            <p className="text-gray-500">No new announcements.</p>
-        ) : (
-            announcements.map((ann, index) => (
-                <div key={index} className="mb-3 border-b pb-2">
-                    <p className="font-semibold text-gray-800">{ann.title}</p>
-                    <p className="text-sm text-gray-600">{ann.body}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                        Posted by {ann.instructor_name} on {new Date(ann.posted_at).toLocaleDateString()}
-                    </p>
+        <StudentLayout>
+            <div className="flex flex-col md:flex-row h-full min-h-screen">
+                {/* Sidebar */}
+                <div className="w-full md:w-64 bg-white border-r p-4">
+                    <div className="mb-6 p-4 bg-teal-50 rounded border border-teal-100">
+                        <h2 className="text-sm font-bold text-teal-800 uppercase tracking-wider">
+                            {courseData?.course_code || 'Course'}
+                        </h2>
+                        <p className="text-xs text-teal-600 mt-1">{courseData?.title}</p>
+                    </div>
+                    <nav className="space-y-2">
+                        <button onClick={() => setActiveTab('info')} className={`w-full text-left px-4 py-3 rounded transition ${activeTab === 'info' ? 'bg-teal-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>ℹ️ Info & Instructor</button>
+                        <button onClick={() => setActiveTab('materials')} className={`w-full text-left px-4 py-3 rounded transition ${activeTab === 'materials' ? 'bg-teal-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>📚 Materials</button>
+                        <button onClick={() => setActiveTab('announcements')} className={`w-full text-left px-4 py-3 rounded transition ${activeTab === 'announcements' ? 'bg-teal-600 text-white' : 'text-gray-600 hover:bg-gray-100'}`}>📢 Announcements</button>
+                    </nav>
                 </div>
-            ))
-        )}
-    </div>
 
-                {/* --- Lessons Column --- */}
-                <div className="md:col-span-3 bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-2">Lessons ({lessons.length})</h2>
-                    {lessons.length === 0 ? (
-                        <p className="text-gray-500">No course material available yet.</p>
-                    ) : (
-                        lessons.map(lesson => (
-                            <div key={lesson.id} className="mb-4 p-4 border rounded-lg hover:bg-gray-50">
-                                <h3 className="font-bold text-xl text-indigo-700 mb-2">
-                                    {lesson.sequence_order}. {lesson.title}
-                                </h3>
-                                <div className="text-gray-700 border-l-4 pl-3 mt-2">
-                                    {lesson.content} 
-                                </div>
+                {/* Main Content */}
+                <div className="flex-1 p-8 bg-gray-50">
+                    {activeTab === 'info' && courseData && (
+                        <div className="max-w-3xl">
+                            <h2 className="text-2xl font-bold text-gray-800 mb-4">{courseData.title}</h2>
+                            <p className="text-gray-600 mb-4">{courseData.description}</p>
+                            <div className="bg-white p-6 rounded shadow border-l-4 border-teal-500">
+                                <h3 className="text-xl font-semibold text-gray-800">{courseData.instructor_name || 'Not Assigned'}</h3>
+                                <p className="text-gray-700 mt-2">📧 {courseData.instructor_email}</p>
+                                <p className="text-gray-700">📍 {courseData.office_address}</p>
                             </div>
-                        ))
+                        </div>
+                    )}
+                    {/* Keep Materials and Announcement sections as they were */}
+                    {activeTab === 'materials' && (
+                        <div>
+                            <h2 className="text-2xl font-bold mb-6">Materials</h2>
+                            {Object.keys(categorizedLessons).map(cat => (
+                                categorizedLessons[cat].length > 0 && (
+                                    <div key={cat} className="mb-6">
+                                        <h3 className="text-lg font-bold text-teal-800 border-b pb-2 mb-2">{cat}</h3>
+                                        {categorizedLessons[cat].map(l => (
+                                            <div key={l.id} className="bg-white p-3 rounded shadow-sm mb-2 border">
+                                                <span className="font-bold">#{l.sequence_order}</span> {l.title}
+                                                <p className="text-sm text-gray-600 ml-6">{l.content}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )
+                            ))}
+                        </div>
+                    )}
+                    {activeTab === 'announcements' && (
+                        <div>
+                            <h2 className="text-2xl font-bold mb-6">Announcements</h2>
+                            {announcements.map(a => (
+                                <div key={a.id} className="bg-yellow-50 p-4 rounded border border-yellow-200 mb-3">
+                                    <h3 className="font-bold">{a.title}</h3>
+                                    <p>{a.body}</p>
+                                    <p className="text-xs text-gray-500 mt-2">{new Date(a.posted_at).toLocaleDateString()}</p>
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </div>
             </div>
-        </div>
+        </StudentLayout>
     );
 };
 export default StudentCourseDetails;
