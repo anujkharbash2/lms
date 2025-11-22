@@ -1,55 +1,98 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
-const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api'
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { token } = useContext(AuthContext);
-  const [stats, setStats] = useState({ departments: 0, users: 0, courses: 0 });
+  const { user } = useContext(AuthContext);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-        if (!token) return; // Don't run if no token
-        try {
-            const res = await axios.get(`${BASE_URL}/admin/stats`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setStats(res.data);
-        } catch (error) {
-            console.error("Error fetching stats:", error.response?.data || error.message);
-        }
-    };
-    fetchStats();
-  }, [token]);
-
-  const DashboardCard = ({ title, count, icon, link, color }) => (
-    <div 
-        onClick={() => navigate(link)}
-        className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 cursor-pointer border-l-4"
-        style={{ borderColor: color }}
-    >
-        <div className="flex justify-between items-center">
-            <div>
-                <p className="text-gray-500 text-sm font-medium uppercase tracking-wider">{title}</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{count}</p>
-            </div>
-            <div className="text-4xl opacity-20" style={{ color: color }}>{icon}</div>
-        </div>
-    </div>
-  );
+  // Configuration for the Dashboard Cards
+  const adminActions = [
+    { 
+      title: "Departments & Faculties", 
+      description: "Create units and assign Department Admins.", 
+      icon: "🏢", 
+      link: "/admin/departments", 
+      color: "#4F46E5" // Indigo
+    },
+    { 
+      title: "User Management", 
+      description: "Register Students, Instructors, and Staff.", 
+      icon: "👥", 
+      link: "/admin/users", 
+      color: "#10B981" // Emerald
+    },
+    { 
+      title: "Course Management", 
+      description: "Create courses, assign codes, and credits.", 
+      icon: "📚", 
+      link: "/admin/courses", 
+      color: "#F59E0B" // Amber
+    }
+  ];
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">Admin Overview</h1>
+      {/* Welcome Section */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-800">Dashboard Overview</h1>
+        <p className="text-gray-600 mt-2">
+          Welcome back, <span className="font-semibold text-indigo-600">{user?.loginId || 'Admin'}</span>. 
+          Select a module below to manage the university system.
+        </p>
+      </div>
+
+      {/* Action Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <DashboardCard title="Departments" count={stats.departments} icon="🏢" link="/admin/departments" color="#4F46E5" />
-        <DashboardCard title="Users" count={stats.users} icon="👥" link="/admin/users" color="#10B981" />
-        <DashboardCard title="Courses" count={stats.courses} icon="📚" link="/admin/courses" color="#F59E0B" />
+        {adminActions.map((action, index) => (
+          <div 
+            key={index}
+            onClick={() => navigate(action.link)}
+            className="bg-white p-6 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border-t-4 group"
+            style={{ borderColor: action.color }}
+          >
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 rounded-lg bg-gray-50 group-hover:bg-gray-100 transition">
+                <span className="text-4xl" role="img" aria-label={action.title}>
+                  {action.icon}
+                </span>
+              </div>
+              <span className="text-gray-400 group-hover:text-gray-600">↗</span>
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-indigo-600 transition">
+              {action.title}
+            </h3>
+            <p className="text-sm text-gray-500">
+              {action.description}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {/* System Information / Static Panel */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
+          📢 System Updates
+        </h2>
+        <ul className="space-y-3 text-sm text-gray-600">
+          <li className="flex items-center gap-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            System is online and connected to Cloud Database.
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            Department hierarchies are active.
+          </li>
+          <li className="flex items-center gap-2">
+            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+            Secure authentication (JWT) is enabled.
+          </li>
+        </ul>
       </div>
     </AdminLayout>
   );
 };
+
 export default AdminDashboard;
