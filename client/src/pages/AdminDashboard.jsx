@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
+const BASE_URL = 'https://lms-backend-lyf8.onrender.com/api'
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
         try {
-            const res = await axios.get('https://lms-backend-lyf8.onrender.com/api/admin/stats', {
+            const res = await axios.get(`${BASE_URL}/admin/stats`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStats(res.data);
