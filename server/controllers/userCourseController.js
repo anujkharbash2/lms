@@ -139,7 +139,7 @@ exports.getCourseDetails = async (req, res) => {
             SELECT 
                 c.title, c.course_code, c.description, c.credits, c.semester, c.program,
                 i.name AS instructor_name, 
-                COALESCE(i.contact_email, u.email) AS instructor_email, 
+                i.contact_email AS instructor_email,
                 i.office_address, 
                 i.website, 
                 i.bio
