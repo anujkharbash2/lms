@@ -72,25 +72,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* System Information / Static Panel */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">
-          📢 System Updates
-        </h2>
-        <ul className="space-y-3 text-sm text-gray-600">
-          <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-            System is online and connected to Cloud Database.
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-            Department hierarchies are active.
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-            Secure authentication (JWT) is enabled.
-          </li>
-        </ul>
-      </div>
+     
     </AdminLayout>
   );
 };
