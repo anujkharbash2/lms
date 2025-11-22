@@ -12,16 +12,17 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
+        if (!token) return; // Don't run if no token
         try {
             const res = await axios.get(`${BASE_URL}/admin/stats`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setStats(res.data);
         } catch (error) {
-            console.error("Error fetching stats", error);
+            console.error("Error fetching stats:", error.response?.data || error.message);
         }
     };
-    if (token) fetchStats();
+    fetchStats();
   }, [token]);
 
   const DashboardCard = ({ title, count, icon, link, color }) => (
