@@ -1,5 +1,7 @@
 const express = require('express');
 const { protect, restrictTo } = require('../middleware/authMiddleware');
+const upload = require('../middleware/uploadMiddleware');
+
 
 const { 
     createLesson, 
@@ -19,11 +21,13 @@ const router = express.Router();
 router.use(protect, restrictTo('Instructor'));
 
 // --- Lesson Management ---
-router.post('/lessons', createLesson);
+// router.post('/lessons', createLesson);
+router.post('/lessons', upload.single('file'), createLesson);
 router.get('/lessons/:courseId', getLessonsByCourse);
 
 // --- Announcement Management ---
-router.post('/announcements', createAnnouncement);
+// router.post('/announcements', createAnnouncement);
+router.post('/announcements', upload.single('file'), createAnnouncement);
 
 // --- Student List & Profile Management ---
 // 👇 THIS IS THE ROUTE YOU WERE MISSING OR HAD WRONG

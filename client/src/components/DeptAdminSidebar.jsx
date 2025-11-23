@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import SAULogo from '../assets/sau_symbol.png'; 
 
 const DeptAdminSidebar = () => {
     const { logout, user } = useContext(AuthContext);
@@ -73,15 +74,17 @@ const DeptAdminSidebar = () => {
                      {/* Header / User Info Section */}
                      <div className="mb-5 ps-2.5">
                         <div className="flex items-center mb-1">
-                            <span className="text-2xl mr-2">🏛️</span>
+                            <div className="w-15 h-15 rounded-full bg-slate-50 p-2">
+                                <img src={SAULogo} alt="SAU Logo" className="h-full w-auto object-contain" />
+                            </div>
                             <span className="self-center text-xl font-semibold whitespace-nowrap text-gray-800">Dept Admin</span>
                         </div>
                         {/* User ID Display */}
                         <div className="flex items-center gap-2 ps-1">
                             <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                            <span className="text-xs font-medium text-gray-500">
-                                {user?.loginId || 'Admin'}
-                            </span>
+                            <div className="text-xs font-medium text-gray-500">
+                                {user?.name || 'Dept Admin'}
+                            </div>
                         </div>
                     </div>
 
@@ -99,7 +102,8 @@ const DeptAdminSidebar = () => {
                                         }`
                                     }
                                 >
-                                    <span className={({ isActive }) => isActive ? "text-gray-900" : "text-gray-500"}>
+                                    {/* FIX: Removed function from className. Inherits color from parent NavLink */}
+                                    <span className="flex-shrink-0 w-5 h-5 transition duration-75">
                                         {item.icon}
                                     </span>
                                     <span className="ms-3">{item.name}</span>

@@ -37,7 +37,7 @@ const StudentDashboard = () => {
                 <div className="mb-8">
                     <h5 className="text-slate-800 text-2xl font-bold">My Dashboard</h5>
                     <p className="text-slate-600 font-light">
-                        Welcome back, <span className="font-semibold text-slate-800">{user?.loginId}</span>. Here are your enrolled courses.
+                        Welcome back, <span className="font-semibold text-slate-800">{user?.name}</span>. Here are your enrolled courses.
                     </p>
                 </div>
 

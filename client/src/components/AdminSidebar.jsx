@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import SAULogo from '../assets/sau_symbol.png'; 
 
 const AdminSidebar = () => {
     const { logout } = useContext(AuthContext);
@@ -80,8 +81,10 @@ const AdminSidebar = () => {
                 <div className="h-full flex flex-col px-3 py-4 overflow-y-auto bg-gray-50">
                     {/* Logo Section */}
                     <div className="flex items-center ps-2.5 mb-5">
-                        <span className="text-2xl mr-2">🎓</span>
-                        <span className="self-center text-xl font-semibold whitespace-nowrap text-gray-800">LMS Admin</span>
+                        <div className="w-15 h-15   rounded-full bg-slate-50  p-2">
+                                                <img src={SAULogo} alt="SAU Logo" className="h-full w-auto object-contain" />
+                        </div>
+                        <span className="self-center text-xl font-semibold whitespace-nowrap text-gray-800">Admin</span>
                     </div>
 
                     {/* Navigation List */}
