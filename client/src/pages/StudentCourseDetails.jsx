@@ -42,19 +42,15 @@ const StudentCourseDetails = () => {
                 setCourseData(infoRes.data);
                 setLessons(lessRes.data);
                 setAnnouncements(annRes.data);
-            } catch (err) { 
-                console.error(err);
-                setError('Failed to load course data.');
-            } finally { 
-                setLoading(false); 
-            }
+            } catch (err) { console.error(err); } finally { setLoading(false); }
         };
         if (token && courseId) fetchData();
     }, [token, courseId]);
 
-    // Derived State for Filtering
+    // Get Unique Categories for the Menu
     const categories = ['All', ...new Set(lessons.map(l => l.category || 'Other'))];
-    
+
+    // Filter Lessons based on selection
     const filteredLessons = selectedCategory === 'All' 
         ? lessons 
         : lessons.filter(l => (l.category || 'Other') === selectedCategory);
