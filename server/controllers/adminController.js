@@ -1,7 +1,7 @@
 const pool = require('../db');
 const bcrypt = require('bcrypt');
 const { generateUniqueId } = require('../utils/authUtils');
-
+const { sendCredentialEmail } = require('../utils/emailService');
 // ==========================================
 // 1. HELPER FUNCTION (Core Logic)
 // ==========================================
@@ -11,29 +11,31 @@ const { generateUniqueId } = require('../utils/authUtils');
  * Handles transactions, ID generation, and Department linking.
  */
 async function createNewUser(req, res, role) {
-    // Extract data
+    // [DEBUG 1] - Verify the function is even being called
+    console.log("------------------------------------------------");
+    console.log("DEBUG [1]: Request received for role:", role);
+    console.log("DEBUG [1]: Request Body:", req.body); 
+
     let { password, dept_id, ...profileData } = req.body; 
 
-    // 🔒 SMART SECURITY: If request comes from a Dept_Admin, force their own Dept ID
-    // This prevents Dept Admin from creating users in other departments.
-    if (req.deptId) {
-        dept_id = req.deptId; 
+    if (req.deptId) dept_id = req.deptId; 
+
+    // [DEBUG 2] - Check Validation
+    if (!password) {
+        console.log("DEBUG [2]: Failed - Missing Password");
+        return res.status(400).json({ message: 'Password is required.' });
     }
 
-    // Basic Validation
-    if (!password) return res.status(400).json({ message: 'Password is required.' });
-    
-    // Dept ID is mandatory for Student/Instructor (Dept_Admin role creation might be by Main Admin)
-    if (role !== 'Main_Admin' && !dept_id) {
-        return res.status(400).json({ message: 'Department ID is required.' });
-    }
-
+    let emailToSend = null;
+    let nameToSend = null;
     let connection;
+
     try {
+        console.log("DEBUG [3]: Starting Database Transaction...");
         connection = await pool.getConnection();
         await connection.beginTransaction();
 
-        // 1. Generate Unique 7-Digit ID
+        // ... (Your ID Generation logic) ...
         let loginId;
         let isIdUnique = false;
         while (!isIdUnique) {
@@ -42,7 +44,7 @@ async function createNewUser(req, res, role) {
             if (existing.length === 0) isIdUnique = true;
         }
 
-        // 2. Create Base User (Login Credentials)
+        // ... (Your User Insert Logic) ...
         const hashedPassword = await bcrypt.hash(password, 10);
         const [userResult] = await connection.query(
             'INSERT INTO Users (login_id, password_hash, role) VALUES (?, ?, ?)',
@@ -50,11 +52,11 @@ async function createNewUser(req, res, role) {
         );
         const userId = userResult.insertId;
 
-        // 3. Handle Specific Roles & Profile Tables
+        // ... (Your Role Logic) ...
         if (role === 'Student') {
-            const { full_name, program, branch, enrollment_number, section, email, phone, address } = profileData;
-            if (!full_name || !email || !enrollment_number) throw new Error("Missing required student fields");
-
+            const { full_name, email, enrollment_number, section, phone, address, program, branch } = profileData;
+            emailToSend = email;
+            nameToSend = full_name;
             await connection.query(
                 `INSERT INTO Students (user_id, full_name, program, branch, enrollment_number, section, email, phone, address, dept_id) 
                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -62,30 +64,50 @@ async function createNewUser(req, res, role) {
             );
         } 
         else if (role === 'Instructor') {
-            const { name, office_address } = profileData;
-            if (!name) throw new Error("Missing required instructor field: name");
-
+            const { name, office_address, email } = profileData;
+            emailToSend = email;
+            nameToSend = name;
             await connection.query(
                 'INSERT INTO Instructors (user_id, name, office_address, dept_id) VALUES (?, ?, ?, ?)',
                 [userId, name, office_address, dept_id]
             );
-        } 
+        }
         else if (role === 'Dept_Admin') {
-            const { name } = profileData; 
-            if (!name) throw new Error("Dept Admin Name is required");
-            
+            const { name, email } = profileData;
+            emailToSend = email;
+            nameToSend = name;
             await connection.query(
                 'INSERT INTO Department_Admins (dept_id, user_id, name) VALUES (?, ?, ?)',
                 [dept_id, userId, name]
             );
         }
 
+        console.log("DEBUG [4]: Database inserts finished. Committing...");
         await connection.commit();
+        console.log("DEBUG [5]: Commit Successful.");
+
+        // --- EMAIL LOGIC ---
+        if (emailToSend) {
+            console.log(`DEBUG [6]: Attempting email to: ${emailToSend}`);
+            try {
+                // Ensure plain text password is used here!
+                await sendCredentialEmail(emailToSend, nameToSend, loginId, password); 
+                console.log("DEBUG [7]: Email SENT successfully.");
+            } catch (mailErr) {
+                console.error("DEBUG [7]: Email Failed:", mailErr.message);
+            }
+        } else {
+            console.log("DEBUG [6]: No email address found in request.");
+        }
+        // -------------------
+
         res.status(201).json({ message: `${role} created successfully.`, loginId, userId });
 
     } catch (error) {
-        await connection?.rollback();
-        console.error(`Create ${role} Error:`, error);
+        // [DEBUG ERROR] - Catch and Log ANY crash
+        console.error("DEBUG [ERROR]: Something crashed!", error);
+        
+        if (connection) await connection.rollback();
         res.status(500).json({ message: `Failed to create ${role}.`, error: error.message });
     } finally {
         if (connection) connection.release();
@@ -363,11 +385,6 @@ const enrollStudent = async (req, res) => {
 
 // ... 
 
-// ADD TO EXPORTS at the very bottom:
-module.exports = {
-    // ... all previous exports ...
-    enrollStudent // <--- ADD THIS
-};
 
 // ==========================================
 // 3. EXPORT EVERYTHING (Single Source of Truth)

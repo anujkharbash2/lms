@@ -1,6 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import SAULogo from '../assets/sau_symbol.png'; 
 
 const StudentSidebar = () => {
     const { logout, user } = useContext(AuthContext);
@@ -54,10 +55,13 @@ const StudentSidebar = () => {
                     
                     {/* Header / User Info Section */}
                     <div className="mb-5 ps-2.5">
-                        <div className="flex items-center mb-1">
-                            <span className="text-2xl mr-2">🎓</span>
-                            <span className="self-center text-xl font-semibold whitespace-nowrap text-gray-800">Student Portal</span>
-                        </div>
+                        {/* Logo Section */}
+                                            <div className="flex items-center ps-2.5 mb-5">
+                                                <div className="w-15 h-15   rounded-full bg-slate-50  p-2">
+                                                                        <img src={SAULogo} alt="SAU Logo" className="h-full w-auto object-contain" />
+                                                </div>
+                                                <span className="self-center text-xl font-semibold whitespace-nowrap text-gray-800">Student Portal</span>
+                                            </div>
                         {/* User ID Display */}
                         <div className="flex items-center gap-2 ps-1">
                             <div className="w-2 h-2 rounded-full bg-green-500"></div>

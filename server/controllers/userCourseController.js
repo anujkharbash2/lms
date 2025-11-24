@@ -109,12 +109,19 @@ exports.getAnnouncementsByCourse = async (req, res) => {
         }
 
         const [announcements] = await pool.query(`
-            SELECT a.title, a.body, a.posted_at, i.name AS instructor_name
-            FROM Announcements a
-            JOIN Instructors i ON a.instructor_id = i.user_id
-            WHERE a.course_id = ?
-            ORDER BY a.posted_at DESC
-        `, [course_id]);
+    SELECT 
+        a.id,
+        a.title, 
+        a.body, 
+        a.posted_at, 
+        a.external_link,
+        a.file_url,
+        i.name AS instructor_name
+    FROM Announcements a
+    JOIN Instructors i ON a.instructor_id = i.user_id
+    WHERE a.course_id = ?
+    ORDER BY a.posted_at DESC
+`, [course_id]);
 
         res.status(200).json(announcements);
     } catch (error) {
